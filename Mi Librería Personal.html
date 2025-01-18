@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Librería Personal</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f8fb;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #4a90e2;
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 900px;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"], select {
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            width: 200px;
+        }
+
+        button {
+            background-color: #4a90e2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #357ab7;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 12px;
+            font-size: 1.1em;
+        }
+
+        th {
+            background-color: #4a90e2;
+            color: white;
+        }
+
+        td {
+            background-color: #f9f9f9;
+        }
+
+        .icon {
+            cursor: pointer;
+            font-size: 20px;
+            transition: transform 0.2s;
+        }
+
+        .thumb-up {
+            color: #38b000;
+        }
+
+        .thumb-down {
+            color: #f44336;
+        }
+
+        .icon:hover {
+            transform: scale(1.2);
+        }
+
+        .search-bar {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        input[type="text"]#search {
+            width: 300px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 1.1em;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Mi Librería Personal</h1>
+
+        <div class="input-group">
+            <input type="text" id="search" placeholder="Buscar libro..." onkeyup="searchBooks()">
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="bookTitle" placeholder="Título del libro">
+            <input type="text" id="bookAuthor" placeholder="Autor del libro">
+            <select id="bookLocation">
+                <option value="casa">Casa</option>
+                <option value="biblioteca">Biblioteca</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <button onclick="addBook()">Agregar Libro</button>
+            <button onclick="modifyBook()">Modificar Libro</button>
+            <button onclick="deleteBook()">Eliminar Libro</button>
+        </div>
+
+        <h3>Libros disponibles</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Título</th>
+                    <th>Autor</th>
+                    <th>Ubicación</th>
+                    <th>Me gusta</th>
+                </tr>
+            </thead>
+            <tbody id="bookList"></tbody>
+        </table>
+
+        <div class="footer">
+            <p>Hecho con <span style="color: #e0245e;">❤️</span> para mi librería personal.</p>
+        </div>
+    </div>
+
+    <script>
+        let books = JSON.parse(localStorage.getItem('books')) || [];
+
+        function renderBooks() {
+            const bookList = document.getElementById('bookList');
+            bookList.innerHTML = '';
+
+            books.forEach((book, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${book.title}</td>
+                    <td>${book.author}</td>
+                    <td>${book.location}</td>
+                    <td>
+                        <span class="icon ${book.liked ? 'thumb-up' : 'thumb-down'}" onclick="toggleLike(${index})">
+                            ${book.liked ? '&#128077;' : '&#128078;'}
+                        </span>
+                    </td>
+                `;
+                bookList.appendChild(row);
+            });
+        }
+
+        function saveBooks() {
+            localStorage.setItem('books', JSON.stringify(books));
+        }
+
+        function searchBooks() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const filteredBooks = books.filter(book => 
+                book.title.toLowerCase().includes(searchTerm) || 
+                book.author.toLowerCase().includes(searchTerm)
+            );
+
+            const bookList = document.getElementById('bookList');
+            bookList.innerHTML = '';
+            filteredBooks.forEach((book, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${book.title}</td>
+                    <td>${book.author}</td>
+                    <td>${book.location}</td>
+                    <td>
+                        <span class="icon ${book.liked ? 'thumb-up' : 'thumb-down'}" onclick="toggleLike(${index})">
+                            ${book.liked ? '&#128077;' : '&#128078;'}
+                        </span>
+                    </td>
+                `;
+                bookList.appendChild(row);
+            });
+        }
+
+        function addBook() {
+            const title = document.getElementById('bookTitle').value;
+            const author = document.getElementById('bookAuthor').value;
+            const location = document.getElementById('bookLocation').value;
+
+            if (title && author) {
+                books.push({ title, author, location, liked: null });
+                saveBooks();
+                renderBooks();
+                alert("Libro agregado");
+            } else {
+                alert("Por favor, ingresa un título y un autor.");
+            }
+
+            document.getElementById('bookTitle').value = '';
+            document.getElementById('bookAuthor').value = '';
+        }
+
+        function modifyBook() {
+            const title = document.getElementById('bookTitle').value;
+            const author = document.getElementById('bookAuthor').value;
+            const location = document.getElementById('bookLocation').value;
+
+            const bookIndex = books.findIndex(book => book.title === title);
+
+            if (bookIndex !== -1 && author) {
+                books[bookIndex].author = author;
+                books[bookIndex].location = location;
+                saveBooks();
+                renderBooks();
+                alert("Libro modificado");
+            } else {
+                alert("Libro no encontrado o autor vacío.");
+            }
+
+            document.getElementById('bookTitle').value = '';
+            document.getElementById('bookAuthor').value = '';
+        }
+
+        function deleteBook() {
+            const title = document.getElementById('bookTitle').value;
+
+            const bookIndex = books.findIndex(book => book.title === title);
+
+            if (bookIndex !== -1) {
+                books.splice(bookIndex, 1);
+                saveBooks();
+                renderBooks();
+                alert("Libro eliminado");
+            } else {
+                alert("Libro no encontrado.");
+            }
+
+            document.getElementById('bookTitle').value = '';
+            document.getElementById('bookAuthor').value = '';
+        }
+
+        function toggleLike(index) {
+            const book = books[index];
+            book.liked = (book.liked === null) ? true : !book.liked;
+            saveBooks();
+            renderBooks();
+        }
+
+        renderBooks();
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
